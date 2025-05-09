@@ -3,6 +3,10 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache';
 import postgres from 'postgres' 
 import { redirect } from 'next/navigation';
+import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
+
+
 const formShema = z.object({
     id:z.string( ),
     customerId:z.string({invalid_type_error: 'Please select a customer.',}),
@@ -108,3 +112,25 @@ export async function deleteInvoice(id: string) {
    
     revalidatePath('/dashboard/invoices');
   }
+
+
+ 
+// ...
+ 
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      if (error instanceof AuthError && error.message === 'CredentialsSignin') {
+        return 'Invalid credentials.';
+      } else {
+        return 'Something went wrong.';
+      }
+    }
+    throw error;
+  }
+}
